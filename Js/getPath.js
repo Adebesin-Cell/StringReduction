@@ -43,15 +43,39 @@ const getKey = function (string = "") {
 const GetPathFunction = function (object = {}, key = "", query = "") {
   const path = [];
 
-  const keyExist = function (obj = {}) {
+  const keyExists = function (obj = {}) {
     if (!obj || (typeof obj !== "object" && !Array.isArray(obj))) {
       return false;
     } else if (obj.hasOwnProperty(key) && obj[key] === query) {
       return true;
     } else if (Array.isArray(obj)) {
-      console.log("hello");
+      let parentKey = path.length ? path.pop() : "";
+
+      for (let i = 0; i < obj.length; i++) {
+        path.push(`${parentKey}[${i}]`);
+        const result = keyExists(obj[i], key);
+        if (result) {
+          return result;
+        }
+        path.pop();
+      }
+    } else {
+      for (const k in obj) {
+        path.push(k);
+        const result = keyExists(obj[k], key);
+        if (result) {
+          return result;
+        }
+        path.pop();
+      }
     }
+
+    return false;
   };
+
+  keyExists(object);
+
+  return `${path.join(".")}.${key}`;
 };
 
 const GETPATH = function (obj, query) {
@@ -60,6 +84,10 @@ const GETPATH = function (obj, query) {
   const key = getKeyStr(flattenedData, query);
 
   const singleKey = getKey(key);
+
+  const path = GetPathFunction(obj, singleKey, query);
+
+  return path;
 };
 
-GETPATH(a, "One expensive house like that");
+console.log(GETPATH(a, "One expensive house like that"));
